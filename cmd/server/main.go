@@ -65,9 +65,9 @@ func main() {
 	loggingInterceptor := middleware.UnaryLoggingInterceptor()
 	authenticationInterceptor := middleware.UnaryTokenInterceptor()
 
-	_ = connect.WithInterceptors(authenticationInterceptor, validateInterceptor, loggingInterceptor)
+	interceptors := connect.WithInterceptors(authenticationInterceptor, validateInterceptor, loggingInterceptor)
 
-	path, handler := v1connect.NewIdentityServiceHandler(server)
+	path, handler := v1connect.NewIdentityServiceHandler(server, interceptors)
 	mux.Handle(path, middleware.CorsMiddleware(handler))
 
 	logger.Info("🚀🚀 gRPC server started on port: 🚀🚀", nextools.F("serverAddr", serverAddr))

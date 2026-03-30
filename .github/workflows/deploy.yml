@@ -58,9 +58,9 @@ jobs:
           declare -A env_map
           
           # ===============================
-          # Shared secrets (app, db, auth, nats)
+          # Shared secrets (app, auth, keycloak)
           # ===============================
-          for secret in app db auth nats; do
+          for secret in app auth keycloak; do
             echo "👮 Fetching shared secret: $secret"
             VARS=$(vault kv get -format=json secret/prod/shared/$secret |
             jq -r '.data.data | to_entries | .[] | "\(.key)=\(.value)"')
@@ -76,7 +76,7 @@ jobs:
           # Service-specific secrets (KV v2, flat)
           # ===============================
           echo "👮 Listing service-specific secrets for $SERVICE"
-          SERVICE_KEYS=("app" "db" "nats")
+          SERVICE_KEYS=("app" "keycloak")
           
           for key in "${SERVICE_KEYS[@]}"; do
             VARS=$(vault kv get -format=json secret/prod/services/$SERVICE/$key |
