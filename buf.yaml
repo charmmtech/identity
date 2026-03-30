@@ -1,8 +1,8 @@
 # For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
 version: v2
 modules:
-  - path: protos
-    name: buf.build/shooters/user-service
+  - path: proto
+    name: buf.build/charmmtech/identity
 lint:
   use:
     - STANDARD
@@ -11,3 +11,4 @@ breaking:
     - FILE
 deps:
   - buf.build/googleapis/googleapis
+  - buf.build/charmmtech/common

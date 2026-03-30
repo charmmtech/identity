@@ -1,0 +1,342 @@
+syntax = "proto3";
+
+package charmmtech.identity.v1;
+
+option go_package = "github.com/charmmtech/identity/gen/charmmtech/identity/v1;identityv1";
+
+import "google/protobuf/timestamp.proto";
+import "charmmtech/common/v1/common.proto";
+
+enum IdentityProviderType {
+  IDENTITY_PROVIDER_TYPE_UNSPECIFIED = 0;
+  IDENTITY_PROVIDER_TYPE_KEYCLOAK = 1;
+  IDENTITY_PROVIDER_TYPE_ORY = 2;
+  IDENTITY_PROVIDER_TYPE_AUTH0 = 3;
+  IDENTITY_PROVIDER_TYPE_CUSTOM = 4;
+}
+
+message ProviderRef {
+  IdentityProviderType type = 1;
+  string instance_id = 2;
+  string realm = 3;
+}
+
+message User {
+  string id = 1;
+  ProviderRef provider = 2;
+  string username = 3;
+  string email = 4;
+  bool email_verified = 5;
+  string first_name = 6;
+  string last_name = 7;
+  bool enabled = 8;
+  bool mfa_enabled = 9;
+  repeated string required_actions = 10;
+  repeated string roles = 11;
+  repeated string groups = 12;
+  map<string, AttributeValues> attributes = 13;
+  google.protobuf.Timestamp created_at = 14;
+  repeated Group group_details = 15;
+}
+
+message AttributeValues {
+  repeated string values = 1;
+}
+
+message UserRequest {
+  string username = 1;
+  string email = 2;
+  bool email_verified = 3;
+  string first_name = 4;
+  string last_name = 5;
+  bool enabled = 6;
+  bool mfa_enabled = 7;
+  repeated string required_actions = 8;
+  map<string, AttributeValues> attributes = 9;
+  string password = 10;
+  bool temporary_password = 11;
+}
+
+message Role {
+  string id = 1;
+  ProviderRef provider = 2;
+  string name = 3;
+  string description = 4;
+  bool composite = 5;
+  bool client_role = 6;
+  map<string, AttributeValues> attributes = 7;
+}
+
+message RoleRequest {
+  string name = 1;
+  string description = 2;
+  map<string, AttributeValues> attributes = 3;
+}
+
+message Group {
+  string id = 1;
+  ProviderRef provider = 2;
+  string name = 3;
+  string path = 4;
+  repeated string roles = 5;
+  map<string, AttributeValues> attributes = 6;
+}
+
+message GroupRequest {
+  string name = 1;
+  string path = 2;
+  map<string, AttributeValues> attributes = 3;
+}
+
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string username = 3;
+  string ip_address = 4;
+  map<string, string> clients = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp last_accessed_at = 7;
+}
+
+message MfaStatus {
+  bool enabled = 1;
+  repeated string configured_credentials = 2;
+  repeated string disableable_credentials = 3;
+  repeated string required_actions = 4;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message ListUsersRequest {
+  common.v1.PageRequest page = 1;
+  string search = 2;
+  string email = 3;
+  string username = 4;
+  string role = 5;
+  string group_id = 6;
+  bool include_groups = 7;
+  bool include_roles = 8;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message CreateUserRequest {
+  UserRequest user = 1;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  UserRequest user = 2;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {}
+
+message SetUserEnabledRequest {
+  string id = 1;
+  bool enabled = 2;
+}
+
+message SetUserEnabledResponse {
+  User user = 1;
+}
+
+message SetUserPasswordRequest {
+  string id = 1;
+  string password = 2;
+  bool temporary = 3;
+}
+
+message SetUserPasswordResponse {}
+
+message ListUserSessionsRequest {
+  string user_id = 1;
+}
+
+message ListUserSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeUserSessionRequest {
+  string user_id = 1;
+  string session_id = 2;
+}
+
+message RevokeUserSessionResponse {}
+
+message GetUserMfaRequest {
+  string user_id = 1;
+}
+
+message GetUserMfaResponse {
+  MfaStatus status = 1;
+}
+
+message UpdateUserMfaRequest {
+  string user_id = 1;
+  bool enabled = 2;
+  repeated string required_actions = 3;
+}
+
+message UpdateUserMfaResponse {
+  MfaStatus status = 1;
+}
+
+message AssignRolesToUserRequest {
+  string user_id = 1;
+  repeated string role_names = 2;
+}
+
+message AssignRolesToUserResponse {
+  repeated Role roles = 1;
+}
+
+message RemoveRolesFromUserRequest {
+  string user_id = 1;
+  repeated string role_names = 2;
+}
+
+message RemoveRolesFromUserResponse {
+  repeated Role roles = 1;
+}
+
+message AddUserToGroupsRequest {
+  string user_id = 1;
+  repeated string group_ids = 2;
+}
+
+message AddUserToGroupsResponse {
+  repeated Group groups = 1;
+}
+
+message RemoveUserFromGroupsRequest {
+  string user_id = 1;
+  repeated string group_ids = 2;
+}
+
+message RemoveUserFromGroupsResponse {
+  repeated Group groups = 1;
+}
+
+message GetRoleRequest {
+  string role_name = 1;
+}
+
+message GetRoleResponse {
+  Role role = 1;
+}
+
+message ListRolesRequest {
+  common.v1.PageRequest page = 1;
+  string search = 2;
+  bool managed_only = 3;
+}
+
+message ListRolesResponse {
+  repeated Role roles = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message CreateRoleRequest {
+  RoleRequest role = 1;
+}
+
+message CreateRoleResponse {
+  Role role = 1;
+}
+
+message UpdateRoleRequest {
+  string role_name = 1;
+  RoleRequest role = 2;
+}
+
+message UpdateRoleResponse {
+  Role role = 1;
+}
+
+message DeleteRoleRequest {
+  string role_name = 1;
+}
+
+message DeleteRoleResponse {}
+
+message GetGroupRequest {
+  string id = 1;
+}
+
+message GetGroupResponse {
+  Group group = 1;
+}
+
+message ListGroupsRequest {
+  common.v1.PageRequest page = 1;
+  string search = 2;
+  bool include_members = 3;
+  bool include_roles = 4;
+}
+
+message ListGroupsResponse {
+  repeated Group groups = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message CreateGroupRequest {
+  GroupRequest group = 1;
+}
+
+message CreateGroupResponse {
+  Group group = 1;
+}
+
+message UpdateGroupRequest {
+  string id = 1;
+  GroupRequest group = 2;
+}
+
+message UpdateGroupResponse {
+  Group group = 1;
+}
+
+message DeleteGroupRequest {
+  string id = 1;
+}
+
+message DeleteGroupResponse {}
+
+message AssignRolesToGroupRequest {
+  string id = 1;
+  repeated string role_names = 2;
+}
+
+message AssignRolesToGroupResponse {
+  repeated Role roles = 1;
+}
+
+message RemoveRolesFromGroupRequest {
+  string id = 1;
+  repeated string role_names = 2;
+}
+
+message RemoveRolesFromGroupResponse {
+  repeated Role roles = 1;
+}

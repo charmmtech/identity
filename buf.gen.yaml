@@ -1,18 +1,27 @@
-# buf.generators.yaml
-version: v1
+# buf.gen.yaml
+version: v2
+clean: true
+
 managed:
   enabled: true
-  optimize_for: CODE_SIZE
-  go_package_prefix:
-    default: github.com/shoot3rs/user/internal/gen
-    except:
-      - buf.build/googleapis/googleapis
+  override:
+    - file_option: go_package
+      value: github.com/charmmtech/identity/gen/charmmtech/identity/v1
+    - file_option: go_package
+      value: buf.build/gen/go/charmmtech/common/protocolbuffers/go/charmmtech/common/v1
+      module: buf.build/charmmtech/common
+  disable:
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+
 plugins:
-  - plugin: buf.build/connectrpc/go
+  - remote: buf.build/connectrpc/go
     out: gen
     opt:
       - paths=source_relative
-  - plugin: go
+  - remote: buf.build/protocolbuffers/go
     out: gen
     opt:
       - paths=source_relative

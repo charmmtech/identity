@@ -1,40 +1,44 @@
-# Start from golang base image
-FROM golang:alpine as builder
+# syntax=docker/dockerfile:1.6
 
-# Add Maintainer info.
+FROM golang:1.25-alpine AS builder
+
 LABEL maintainer="Joseph Akitoye <josephakitoye@gmail.com>"
 
-# Install git.
-# Git is required for fetching the dependencies.
-RUN apk update && apk add --no-cache git && apk add --no-cache bash && apk add build-base
+# Install dependencies
+RUN apk add --no-cache git bash build-base ca-certificates
 
-# Set the current working directory inside the container.
 WORKDIR /app
 
-# Copy go mod and sum files.
+# ✅ Proper Go env for private modules
+ENV GO111MODULE=on
+ENV GOPRIVATE=buf.build
+ENV GONOSUMDB=buf.build
+ENV GOPROXY=https://proxy.golang.org,direct
+
+# Copy go mod first (for caching)
 COPY go.mod go.sum ./
 
-# Download all dependencies. Dependencies will be cached if the go.mod and the go.sum files are not changed.
-RUN go mod download && go mod verify
+# ✅ Authenticate to Buf using BuildKit secret
+RUN --mount=type=secret,id=buf_token \
+    mkdir -p /root && \
+    echo "machine buf.build login token password $(cat /run/secrets/buf_token)" > /root/.netrc && \
+    go mod download && \
+    go mod verify && \
+    rm /root/.netrc
 
-# Copy the source from the current directory to the working directory inside the container.
+# Copy source code
 COPY . .
 
-# Build the Go pkg
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/*.go
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
 
-# Start a new stage from scratch
+# --- Final Stage ---
 FROM alpine:latest
+LABEL com.docker.compose.project=microservice
+
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-# Copy the Pre-built binary file from the previous stage. Observe we also copied the .env file
-COPY --from=builder /app/main ./
-COPY --from=builder /app/.env.docker ./.env
+COPY --from=builder /app/main .
 
-# Expose port to the outside world
-EXPOSE 50052
-
-# Command to run the executable
 CMD ["./main"]

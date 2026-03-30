@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package charmmtech.identity.v1;
+
+option go_package = "github.com/charmmtech/identity/gen/charmmtech/identity/v1;identityv1";
+
+import "charmmtech/identity/v1/identity.proto";
+
+service IdentityService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc SetUserEnabled(SetUserEnabledRequest) returns (SetUserEnabledResponse);
+  rpc SetUserPassword(SetUserPasswordRequest) returns (SetUserPasswordResponse);
+  rpc ListUserSessions(ListUserSessionsRequest) returns (ListUserSessionsResponse);
+  rpc RevokeUserSession(RevokeUserSessionRequest) returns (RevokeUserSessionResponse);
+  rpc GetUserMfa(GetUserMfaRequest) returns (GetUserMfaResponse);
+  rpc UpdateUserMfa(UpdateUserMfaRequest) returns (UpdateUserMfaResponse);
+  rpc AssignRolesToUser(AssignRolesToUserRequest) returns (AssignRolesToUserResponse);
+  rpc RemoveRolesFromUser(RemoveRolesFromUserRequest) returns (RemoveRolesFromUserResponse);
+  rpc AddUserToGroups(AddUserToGroupsRequest) returns (AddUserToGroupsResponse);
+  rpc RemoveUserFromGroups(RemoveUserFromGroupsRequest) returns (RemoveUserFromGroupsResponse);
+
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse);
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
+
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse);
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse);
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
+  rpc AssignRolesToGroup(AssignRolesToGroupRequest) returns (AssignRolesToGroupResponse);
+  rpc RemoveRolesFromGroup(RemoveRolesFromGroupRequest) returns (RemoveRolesFromGroupResponse);
+}
