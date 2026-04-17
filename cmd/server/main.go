@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"connectrpc.com/connect"
+	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/validate"
 	"github.com/Nerzal/gocloak/v13"
@@ -26,7 +31,8 @@ var (
 		nextools.WithEnvValue("APP.DEBUG", os.Getenv("APP.DEBUG")),
 	)
 
-	logger = nextools.NewLoggerBuilder().Build()
+	reporter = nextools.NewErrorReporterFromEnv(os.Getenv("APP.NAME"), os.Getenv("APP.VERSION"), os.Getenv("APP.ENV"))
+	logger   = nextools.NewLoggerBuilder().WithErrorReporter(reporter).Build()
 )
 
 func init() {
@@ -34,6 +40,7 @@ func init() {
 }
 
 func main() {
+	defer reporter.Close()
 	serverAddr := cfg.ServerAddr()
 
 	authenticator, err := nextools.NewAuthenticator()
@@ -60,6 +67,7 @@ func main() {
 	reflector := grpcreflect.NewStaticReflector(v1connect.IdentityServiceName)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+	mux.Handle(grpchealth.NewHandler(middleware.HealthChecker(v1connect.IdentityServiceName)))
 
 	validateInterceptor := validate.NewInterceptor()
 	loggingInterceptor := middleware.UnaryLoggingInterceptor()
@@ -70,9 +78,26 @@ func main() {
 	path, handler := v1connect.NewIdentityServiceHandler(server, interceptors)
 	mux.Handle(path, middleware.CorsMiddleware(handler))
 
-	logger.Info("🚀🚀 gRPC server started on port: 🚀🚀", nextools.F("serverAddr", serverAddr))
-	if err := http.ListenAndServe(serverAddr, h2c.NewHandler(mux, cfg.Http2())); err != nil {
-		log.Println("failed to start server:", err)
-		os.Exit(1)
+	srv := &http.Server{
+		Addr:    serverAddr,
+		Handler: h2c.NewHandler(mux, cfg.Http2()),
+	}
+	go func() {
+		logger.Info("🚀🚀 gRPC server started on port: 🚀🚀", nextools.F("serverAddr", serverAddr))
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("❌ failed to start server", nextools.Err(err))
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logger.Info("shutting down server gracefully...")
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error("server forced to shutdown", nextools.Err(err))
 	}
 }
