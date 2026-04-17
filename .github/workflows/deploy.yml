@@ -58,9 +58,9 @@ jobs:
           declare -A env_map
           
           # ===============================
-          # Shared secrets (app, auth, keycloak)
+          # Shared secrets (app, auth, keycloak, error)
           # ===============================
-          for secret in app auth keycloak; do
+          for secret in app auth keycloak error; do
             echo "👮 Fetching shared secret: $secret"
             VARS=$(vault kv get -format=json secret/prod/shared/$secret |
             jq -r '.data.data | to_entries | .[] | "\(.key)=\(.value)"')
