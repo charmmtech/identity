@@ -17,7 +17,8 @@ managed:
       module: buf.build/bufbuild/protovalidate
 
 plugins:
-  - remote: buf.build/connectrpc/go
+  # Pinned to Connect v1. Do not bump to v2.x (breaking Go API changes).
+  - remote: buf.build/connectrpc/go:v1.21.0
     out: gen
     opt:
       - paths=source_relative
